@@ -1,0 +1,330 @@
+/**
+ * @copyright
+ *
+ * @file    dali2_l_app.h
+ * @author  Anton K.
+ * @date    02 Sep 2021
+ *
+ * @brief   DALI-2 Application Controller.
+ *          Application layer header file
+ */
+#ifndef DALI2_L_APP_H_
+#define DALI2_L_APP_H_
+
+#include "dali2_l_phy.h"
+#include "dali2_l_net.h"
+#include "dali2_l_ses.h"
+#include "dali2_l_pres.h"
+#include "dali2_l_bsp.h"
+#include "dali2_error.h"
+
+#define DALI2_L_APP_DTR0_TO_SET_SHORT_ADDRESS(X)        (((X << 1) | 0x01) & 0x7F)
+#define DALI2_L_APP_DTR0_TO_DELETE_ALL_ADDRESS()        0xFF
+
+#define DALI2_L_APP_INITIALIZE_TO_SHORT_ADDRESS(X)      DALI2_L_APP_DTR0_TO_SET_SHORT_ADDRESS(X)
+
+#define DIM_CFG_SEC_IN_MIN      60
+#define DALI2_L_APP_SET_EXTENDED_FADE_TIME_BASE_MAX     0x10
+#define DALI2_L_APP_SET_EXTENDED_FADE_TIME_BASE_LIM_S_1   16
+#define DALI2_L_APP_SET_EXTENDED_FADE_TIME_BASE_LIM_S_2   160
+#define DALI2_L_APP_SET_EXTENDED_FADE_TIME_BASE_LIM_S_3   (16 * DIM_CFG_SEC_IN_MIN)
+#define DALI2_L_APP_SET_EXTENDED_FADE_TIME_MUL_0MS      0
+#define DALI2_L_APP_SET_EXTENDED_FADE_TIME_MUL_100MS    1
+#define DALI2_L_APP_SET_EXTENDED_FADE_TIME_MUL_1S       2
+#define DALI2_L_APP_SET_EXTENDED_FADE_TIME_MUL_10S      3
+#define DALI2_L_APP_SET_EXTENDED_FADE_TIME_MUL_1M       4
+#define DALI2_L_APP_SET_EXTENDED_FADE_TIME_CALCULATION(BASE, MUL)   (((BASE - 1) & 0x0f) | ((MUL & 7) << 0x04))
+
+#define DALI2_L_APP_CMD_RESET_SETTLING_TIME_MS          300
+#define DALI2_L_APP_CMD_DEFAULT_SETTLING_TIME_MS        50
+
+#define DALI2_L_APP_CMD_SCENE_COUNT                     0x10
+
+//! Application instructions enumeration
+typedef enum {
+    //! Standard commands
+    DALI2_L_APP_CMD_OFF,
+    DALI2_L_APP_CMD_UP,
+    DALI2_L_APP_CMD_DOWN,
+    DALI2_L_APP_CMD_STEP_UP,
+    DALI2_L_APP_CMD_STEP_DOWN,
+    DALI2_L_APP_CMD_RECALL_MAX_LEVEL,
+    DALI2_L_APP_CMD_RECALL_MIN_LEVEL,
+    DALI2_L_APP_CMD_STEP_DOWN_AND_OFF,
+    DALI2_L_APP_CMD_ON_AND_STEP_UP,
+    DALI2_L_APP_CMD_ENABLE_DAPC_SEQUENCE,
+    DALI2_L_APP_CMD_GO_TO_LAST_ACTIVE_LEVEL,
+    DALI2_L_APP_CMD_GO_TO_SCENE,
+
+    DALI2_L_APP_CMD_RESET,
+
+    DALI2_L_APP_CMD_SET_OPERATING_MODE_DTR0,
+
+    DALI2_L_APP_CMD_IDENTIFY_DEVICE,
+    DALI2_L_APP_CMD_SET_MAX_LEVEL_DTR0,
+    DALI2_L_APP_CMD_SET_MIN_LEVEL_DTR0,
+    DALI2_L_APP_CMD_SET_SYSTEM_FAILURE_LEVEL_DTR0,
+    DALI2_L_APP_CMD_SET_POWER_ON_LEVEL_DTR0,
+    DALI2_L_APP_CMD_SET_FADE_TIME_DTR0,
+    DALI2_L_APP_CMD_SET_FADE_RATE_DTR0,
+    DALI2_L_APP_CMD_SET_EXTENDED_FADE_TIME_DTR0,
+
+    DALI2_L_APP_CMD_SET_SHORT_ADDRESS,
+
+    DALI2_L_APP_CMD_QUERY_STATUS,
+    DALI2_L_APP_CMD_QUERY_CONTROL_GEAR_PRESENT,
+    DALI2_L_APP_CMD_QUERY_LAMP_FAILURE,
+    DALI2_L_APP_CMD_QUERY_LAMP_POWER_ON,
+    DALI2_L_APP_CMD_QUERY_LIMIT_ERROR,
+    DALI2_L_APP_CMD_QUERY_RESET_STATE,
+    DALI2_L_APP_CMD_QUERY_MISSING_SHORT_ADDRESS,
+    DALI2_L_APP_CMD_QUERY_VERSION_NUMBER,
+    DALI2_L_APP_CMD_QUERY_CONTENT_DTR0,
+    DALI2_L_APP_CMD_QUERY_DEVICE_TYPE,
+    DALI2_L_APP_CMD_QUERY_PHYSICAL_MINIMUM,
+    DALI2_L_APP_CMD_QUERY_POWER_FAILURE,
+    DALI2_L_APP_CMD_QUERY_CONTENT_DTR1,
+    DALI2_L_APP_CMD_QUERY_CONTENT_DTR2,
+    DALI2_L_APP_CMD_QUERY_OPERATING_MODE,
+    DALI2_L_APP_CMD_QUERY_LIGHT_SOURCE_TYPE,
+
+    DALI2_L_APP_CMD_QUERY_ACTUAL_LEVEL,
+    DALI2_L_APP_CMD_QUERY_MAX_LEVEL,
+    DALI2_L_APP_CMD_QUERY_MIN_LEVEL,
+    DALI2_L_APP_CMD_QUERY_POWER_ON_LEVEL,
+    DALI2_L_APP_CMD_QUERY_SYSTEM_FAILURE_LEVEL,
+    DALI2_L_APP_CMD_QUERY_FADE_TIME_FADE_RATE,
+    DALI2_L_APP_CMD_QUERY_MANUFACTURER_SPECIFIC_MODE,
+    DALI2_L_APP_CMD_QUERY_NEXT_DEVICE_TYPE,
+    DALI2_L_APP_CMD_QUERY_EXTENDED_FADE_TIME,
+    DALI2_L_APP_CMD_QUERY_CONTROL_GEAR_FAILURE,
+
+    //! Special commands
+    DALI2_L_APP_CMD_TERMINATE,
+    DALI2_L_APP_CMD_DTR0,
+    DALI2_L_APP_CMD_INITIALISE,
+    DALI2_L_APP_CMD_RANDOMISE,
+    DALI2_L_APP_CMD_COMPARE,
+    DALI2_L_APP_CMD_WITHDRAW,
+    DALI2_L_APP_CMD_PING,
+    DALI2_L_APP_CMD_SEARCHADDRH,
+    DALI2_L_APP_CMD_SEARCHADDRM,
+    DALI2_L_APP_CMD_SEARCHADDRL,
+    DALI2_L_APP_CMD_PROGRAM_SHORT_ADDRESS,
+    DALI2_L_APP_CMD_VERIFY_SHORT_ADDRESS,
+    DALI2_L_APP_CMD_QUERY_SHORT_ADDRESS,
+
+    DALI2_L_APP_CMD_DAPC,
+
+    //! LED commands
+    DALI2_L_APP_CMD_REFERENCE_SYSTEM_POWER,
+    DALI2_L_APP_CMD_ENABLE_CURRENT_PROTECTOR,
+    DALI2_L_APP_CMD_DISABLE_CURRENT_PROTECTOR,
+    DALI2_L_APP_CMD_SELECT_DIMMING_CURVE,
+    DALI2_L_APP_CMD_STORE_DTR_AS_FAST_FADE_TIME,
+
+    DALI2_L_APP_CMD_QUERY_GEAR_TYPE,
+    DALI2_L_APP_CMD_QUERY_DIMMING_CURVE,
+    DALI2_L_APP_CMD_QUERY_POSSIBLE_OPERATING_MODES,
+    DALI2_L_APP_CMD_QUERY_FEATURES,
+    DALI2_L_APP_CMD_QUERY_FAILURE_STATUS,
+    DALI2_L_APP_CMD_QUERY_SHORT_CIRCUIT,
+    DALI2_L_APP_CMD_QUERY_OPEN_CIRCUIT,
+    DALI2_L_APP_CMD_QUERY_LOAD_DECREASE,
+    DALI2_L_APP_CMD_QUERY_LOAD_INCREASE,
+    DALI2_L_APP_CMD_QUERY_CURRENT_PROTECTOR_ACTIVE,
+    DALI2_L_APP_CMD_QUERY_THERMAL_SHUT_DOWN,
+    DALI2_L_APP_CMD_QUERY_THERMAL_OVERLOAD,
+    DALI2_L_APP_CMD_QUERY_REFERENCE_RUNNING,
+    DALI2_L_APP_CMD_QUERY_REFERENCE_MEASUREMENT_FAILED,
+    DALI2_L_APP_CMD_QUERY_CURRENT_PROTECTOR_ENABLED,
+    DALI2_L_APP_CMD_QUERY_OPERATING_MODE_LED,
+    DALI2_L_APP_CMD_QUERY_FAST_FADE_TIME,
+    DALI2_L_APP_CMD_QUERY_MIN_FAST_FADE_TIME,
+    DALI2_L_APP_CMD_QUERY_EXTENDED_VERSION_NUMBER,
+
+    DALI2_L_APP_CMD_ENABLE_DEVICE_TYPE_6,
+
+    DALI2_L_APP_CMD_UNKNOWN
+} DALI2_L_APP_CMD_T;
+
+//! Data for DALI2_L_APP_CMD_INITIALISE
+typedef enum {
+    DALI2_APP_CMD_INITIALISE_ADDRESSING_SHORT_ADDRESS,
+    DALI2_APP_CMD_INITIALISE_ADDRESSING_NO_ADDRESS,
+    DALI2_APP_CMD_INITIALISE_ADDRESSING_ALL
+} DALI2_APP_CMD_INITIALISE_ADDRESSING_T;
+typedef struct {
+    DALI2_APP_CMD_INITIALISE_ADDRESSING_T addressing;
+    unsigned char addr;
+} dali2_l_app_cmd_initialise_data_t;
+
+//! Data for DALI2_L_APP_CMD_DTR0
+typedef unsigned char dali2_l_app_cmd_dtr0_data_t;
+
+//! Data for DALI2_DALI2_L_APP_CMD_SEARCHADDRH
+//! Data for DALI2_DALI2_L_APP_CMD_SEARCHADDRM
+//! Data for DALI2_DALI2_L_APP_CMD_SEARCHADDRL
+typedef unsigned char dali2_l_app_cmd_searchaddress_hml_data_t;
+
+//! Data for DALI2_L_APP_CMD_PROGRAM_SHORT_ADDRESS
+typedef unsigned char dali2_l_app_cmd_program_short_address_data_t;
+
+//! Data for DALI2_L_APP_CMD_VERIFY_SHORT_ADDRESS
+typedef unsigned char dali2_l_app_cmd_verify_short_address_data_t;
+
+//! Data for DALI2_L_APP_CMD_QUERY_STATUS
+typedef enum {
+    DALI2_L_APP_CMD_STATUS_CONTROL_GEAR_FAILURE = 0x01,
+    DALI2_L_APP_CMD_STATUS_LAMP_FAILURE = 0x02,
+    DALI2_L_APP_CMD_STATUS_LAMP_ON = 0x04,
+    DALI2_L_APP_CMD_STATUS_LIMIT_ERROR = 0x08,
+    DALI2_L_APP_CMD_STATUS_FADE_RUNNING = 0x10,
+    DALI2_L_APP_CMD_STATUS_RESET_STATE = 0x20,
+    DALI2_L_APP_CMD_STATUS_SHORT_ADDRESS = 0x40,
+    DALI2_L_APP_CMD_STATUS_POWER_CYCLE_SEEN = 0x80
+} DALI2_L_APP_CMD_STATUS_T;
+
+//! Data for DALI2_L_APP_CMD_QUERY_LIGHT_SOURCE_TYPE
+typedef enum {
+    DALI2_L_APP_CMD_LIGHT_LOW_PRESSURE_FLUORESCENT = 0x00,
+    DALI2_L_APP_CMD_LIGHT_RESERVED_1 = 0x01,
+    DALI2_L_APP_CMD_LIGHT_HID = 0x02,
+    DALI2_L_APP_CMD_LIGHT_LOW_VOLTAGE_HALOGEN = 0x03,
+    DALI2_L_APP_CMD_LIGHT_INCANDESCENT = 0x04,
+    DALI2_L_APP_CMD_LIGHT_RESERVED_5 = 0x05,
+    DALI2_L_APP_CMD_LIGHT_LED = 0x06,
+    DALI2_L_APP_CMD_LIGHT_OLED = 0x07,
+    DALI2_L_APP_CMD_LIGHT_RESERVED_8 = 0x08,
+    DALI2_L_APP_CMD_LIGHT_RESERVED_251 = 0xFB,
+    DALI2_L_APP_CMD_LIGHT_OTHER = 0xFC,
+    DALI2_L_APP_CMD_LIGHT_UNKNOWN = 0xFD,
+    DALI2_L_APP_CMD_LIGHT_NO_LIGHT = 0xFE,
+    DALI2_L_APP_CMD_LIGHT_MULTIPLE = 0xFF
+} DALI2_L_APP_CMD_LIGHT_SOURCE_T;
+
+//! Data for DALI2_L_APP_CMD_QUERY_DEVICE_TYPE
+typedef enum {
+    DALI2_L_APP_CMD_DEVICE_LED = 0x06
+} DALI2_L_APP_CMD_DEVICE_T;
+
+//! Operating mode list. Data for DALI2_L_APP_CMD_SET_OPERATING_MODE_DTR0
+//!                               DALI2_L_APP_CMD_QUERY_OPERATING_MODE
+typedef enum {
+    DALI2_L_APP_OPERATING_MODE_NORMAL = 0x00,              //!< DALI2_L_APP_OPERATING_MODE_NORMAL
+    DALI2_L_APP_OPERATING_MODE_MANUFACTURE_SPECIFIC = 0x80,//!< DALI2_L_APP_OPERATING_MODE_MANUFACTURE_SPECIFIC
+} DALI2_L_APP_OPERATING_MODE_T;
+
+//! Data for DALI2_L_APP_CMD_QUERY_FEATURES
+typedef enum {
+    DALI2_L_APP_LED_FEATURE_SHORT_CIRCUIT_DETECTION = 0x01,
+    DALI2_L_APP_LED_FEATURE_OPEN_CIRCUIT_DETECTION = 0x02,
+    DALI2_L_APP_LED_FEATURE_LOAD_DECREASE_DETECTION = 0x04,
+    DALI2_L_APP_LED_FEATURE_LOAD_INCREASE_DETECTION = 0x08,
+    DALI2_L_APP_LED_FEATURE_CURRENT_PROTECTOR_SUPPORTED = 0x10,
+    DALI2_L_APP_LED_FEATURE_THERMAL_SHUT_DOWN_SUPPORTED = 0x20,
+    DALI2_L_APP_LED_FEATURE_LIGHT_LEVEL_REDUCTION_SUPPORTED = 0x40,
+    DALI2_L_APP_LED_FEATURE_PHYSICAL_SELECTION_SUPPORTED = 0x80
+} DALI2_L_APP_LED_FEATURE_T;
+
+//! Dimming curve list. Data for DALI2_L_APP_CMD_SELECT_DIMMING_CURVE
+//!                              DALI2_L_APP_CMD_QUERY_DIMMING_CURVE
+typedef enum {
+    DALI2_L_APP_DIMMING_CURVE_LOGARITHMIC,
+    DALI2_L_APP_DIMMING_CURVE_LINEAR
+} DALI2_L_APP_DIMMING_CURVE_T;
+
+//! Data for DALI2_L_APP_CMD_QUERY_OPERATING_MODE_LED
+typedef enum {
+    DALI2_L_APP_LED_OPERATING_MODE_PWM_ACTIVE = 0x01,
+    DALI2_L_APP_LED_OPERATING_MODE_AM_ACTIVE = 0x02,
+    DALI2_L_APP_LED_OPERATING_MODE_CURRENT_CONTROLLED = 0x04,
+    DALI2_L_APP_LED_OPERATING_MODE_HIGH_CURRENT_PULSE_ACTIVE = 0x08,
+    DALI2_L_APP_LED_OPERATING_MODE_NON_LOGARITHMIC_ACTIVE = 0x10
+} DALI2_L_APP_LED_OPERATING_MODE_T;
+
+//! Data for DALI2_L_APP_CMD_QUERY_FAILURE_STATUS
+typedef enum {
+    DALI2_L_APP_LED_FAILURE_SHORT_CIRCUIT = 0x01,
+    DALI2_L_APP_LED_FAILURE_OPEN_CIRCUIT = 0x02,
+    DALI2_L_APP_LED_FAILURE_LOAD_DECREASE = 0x04,
+    DALI2_L_APP_LED_FAILURE_LOAD_INCREASE = 0x08,
+    DALI2_L_APP_LED_FAILURE_CURRENT_PROTECTOR_ACTIVE = 0x10,
+    DALI2_L_APP_LED_FAILURE_THERMAL_SHUT_DOWN = 0x20,
+    DALI2_L_APP_LED_FAILURE_THERMAL_OVERLOAD = 0x40,
+    DALI2_L_APP_LED_FAILURE_REFERENCE_FAILED = 0x80
+} DALI2_L_APP_LED_FAILURE_T;
+
+//! Network structure for Application layer
+typedef struct {
+    DALI2_L_NET_METHOD_T method;
+    dali2_l_net_addr_byte_t addr_byte;
+} dali2_l_app_network_t;
+
+//! Standard command type
+typedef struct {
+    dali2_l_app_network_t net;
+    unsigned char data;
+} dali2_l_app_std_cmd_data_t;
+//! Standard command response type
+typedef dali2_l_app_std_cmd_data_t dali2_l_app_std_rsp_data_t;
+
+//! Special command type
+typedef union {
+    void *terminate;
+    dali2_l_app_cmd_dtr0_data_t dtr0;
+    dali2_l_app_cmd_initialise_data_t initialise;
+    void *randomise;
+    void *compare;
+    void *withdraw;
+    void *ping;
+    dali2_l_app_cmd_searchaddress_hml_data_t searchaddress_hml;
+    dali2_l_app_cmd_program_short_address_data_t program_short_address;
+    dali2_l_app_cmd_verify_short_address_data_t verify_short_address;
+    void *query_short_address;
+} dali2_l_app_spec_cmd_data_t;
+//! Special command response type
+typedef unsigned char dali2_l_app_spec_rsp_data_t;
+
+//! Unexpected command response type
+typedef unsigned char dali2_l_app_unexpected_rsp_data_t;
+
+typedef union {
+    //! Special command data
+    dali2_l_app_spec_cmd_data_t spec_cmd;
+    dali2_l_app_spec_rsp_data_t spec_rsp;
+
+    //! Standard command data
+    dali2_l_app_std_cmd_data_t std_cmd;
+    dali2_l_app_std_rsp_data_t std_rsp;
+
+    //! Unexpected command data
+    dali2_l_app_unexpected_rsp_data_t unexpected_rsp;
+} dali2_l_app_cmd_data_t;
+
+typedef enum {
+    DALI2_L_APP_EVT_SUCCESS,
+    DALI2_L_APP_EVT_FAULT,
+    DALI2_L_APP_EVT_TIMEOUT
+} DALI2_L_APP_EVT_T;
+
+typedef struct {
+    DALI2_L_APP_CMD_T cmd;
+    dali2_l_app_cmd_data_t cmd_data;
+} dali2_l_app_evt_data_t;
+
+typedef void (* dali2_l_app_evt_func_t) (DALI2_L_APP_EVT_T evt, dali2_l_app_evt_data_t *evt_data);
+
+//! @brief One-short Timer callback Handler
+//! @note Produced by dali2_l_bsp_app_timer_start_ms(()
+//! @attention Must have to be used!
+void dali2_l_app_timer_cb_handler(void);
+
+dali2_ret_t dali2_l_app_init(dali2_l_app_evt_func_t cb);
+
+dali2_ret_t dali2_l_app_deinit(void);
+
+dali2_ret_t dali2_l_app_cmd_execute(DALI2_L_APP_CMD_T cmd, dali2_l_app_cmd_data_t *cmd_data);
+
+
+#endif /* DALI2_L_APP_H_ */
